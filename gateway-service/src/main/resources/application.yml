@@ -1,0 +1,36 @@
+management:
+  endpoint.gateway.enabled: true
+
+spring:
+  cloud:
+    gateway:
+      discovery.locator.enabled: true
+      routes:
+        - id: donations-service-id
+          uri: lb://donations-service
+          predicates:
+            Path=/api/donations/**
+          filters:
+            - AuthFilter
+        - id: forum-service-id
+          uri: lb://forum-service
+          predicates:
+            Path=/api/forum/**
+          filters:
+            - AuthFilter
+        - id: initiatives-service-id
+          uri: lb://initiatives-service
+          predicates:
+            Path=/api/initiatives/**
+          filters:
+            - AuthFilter
+        - id: payments-service-id
+          uri: lb://payments-service
+          predicates:
+            Path=/api/payments/**
+          filters:
+            - AuthFilter
+        - id: users-service-id
+          uri: lb://users-service
+          predicates:
+            - Path=/api/users/sign-in, /api/users/register
