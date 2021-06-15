@@ -35,7 +35,8 @@ public class Initiative {
 
     private String location;
 
-    @ElementCollection()
+    @
+            ElementCollection()
     private List<String> participantEmails;
 
     public Initiative(String initiatorEmail, InitiativeDto initiativeDto) {

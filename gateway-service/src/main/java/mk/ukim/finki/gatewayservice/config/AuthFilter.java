@@ -11,10 +11,14 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 
 @Component
-@AllArgsConstructor
 public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
     private final JWTVerifier verifier;
+
+    public AuthFilter(JWTVerifier verifier) {
+        super(Config.class);
+        this.verifier = verifier;
+    }
 
     @Override
     public GatewayFilter apply(Config config) {
