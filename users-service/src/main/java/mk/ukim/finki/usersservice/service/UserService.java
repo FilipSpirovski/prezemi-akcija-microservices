@@ -20,7 +20,5 @@ public interface UserService {
 
     String loginUser(LoginDto loginDto) throws JsonProcessingException;
 
-    UserDetailsDto validateToken(String token) throws JsonProcessingException;
-
     boolean deleteUser(String userEmail);
 }

@@ -1,10 +1,14 @@
 package mk.ukim.finki.usersservice.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import mk.ukim.finki.usersservice.model.Role;
 import mk.ukim.finki.usersservice.model.User;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDetailsDto {
 
     private String email;
@@ -18,5 +22,9 @@ public class UserDetailsDto {
         userDetailsDto.setRole(user.getRole());
 
         return userDetailsDto;
+    }
+
+    public static UserDetailsDto empty() {
+        return new UserDetailsDto(null, null);
     }
 }

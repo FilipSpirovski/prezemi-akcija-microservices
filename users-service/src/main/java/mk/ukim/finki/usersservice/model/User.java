@@ -4,9 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import mk.ukim.finki.usersservice.model.dto.RegistrationDto;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +17,7 @@ public class User {
 
     private String password;
 
+    @Enumerated(value = EnumType.STRING)
     private Role role;
 
     private String name;

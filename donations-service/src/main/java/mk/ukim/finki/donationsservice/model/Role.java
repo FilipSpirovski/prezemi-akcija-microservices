@@ -1,4 +1,4 @@
-package mk.ukim.finki.usersservice.model;
+package mk.ukim.finki.donationsservice.model;
 
 import org.springframework.security.core.GrantedAuthority;
 

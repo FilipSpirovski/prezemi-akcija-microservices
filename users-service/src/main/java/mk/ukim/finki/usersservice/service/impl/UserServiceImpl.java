@@ -74,22 +74,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetailsDto validateToken(String token) throws JsonProcessingException {
-        String user = JWT.require(Algorithm.HMAC256(JwtAuthConstants.SECRET.getBytes()))
-                .build()
-                .verify(token)
-                .getSubject();
+    public boolean deleteUser(String userEmail) throws UserNotFound {
+        User existingUser = this.findByEmail(userEmail);
 
-        if (user == null) {
-            return null;
+        this.userRepository.delete(existingUser);
+
+        try {
+            existingUser = this.findByEmail(userEmail);
+
+            return false;
+        } catch (UserNotFound e) {
+            return true;
         }
-
-        return new ObjectMapper().readValue(user, UserDetailsDto.class);
-    }
-
-    @Override
-    public boolean deleteUser(String userEmail) {
-        return false;
     }
 
     private Role validateRoleName(String roleName) {

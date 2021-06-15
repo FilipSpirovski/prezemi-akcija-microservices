@@ -1,21 +1,20 @@
 package mk.ukim.finki.gatewayservice.config;
 
-import mk.ukim.finki.gatewayservice.dto.UserDto;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.JWTVerifier;
+import lombok.AllArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Objects;
 
 @Component
+@AllArgsConstructor
 public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
-    private final WebClient.Builder webClientBuilder;
-
-    public AuthFilter(WebClient.Builder webClientBuilder) {
-        super(Config.class);
-        this.webClientBuilder = webClientBuilder;
-    }
+    private final JWTVerifier verifier;
 
     @Override
     public GatewayFilter apply(Config config) {
@@ -23,29 +22,26 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
             if (!exchange.getRequest()
                     .getHeaders()
                     .containsKey(HttpHeaders.AUTHORIZATION)) {
-                throw new RuntimeException("Missing authorization information");
+                throw new RuntimeException("Missing authorization information.");
             }
 
-            String authHeader = exchange.getRequest()
+            String authHeader = Objects.requireNonNull(exchange.getRequest()
                     .getHeaders()
-                    .get(HttpHeaders.AUTHORIZATION)
+                    .get(HttpHeaders.AUTHORIZATION))
                     .get(0);
             String[] parts = authHeader.split(" ");
             if (parts.length != 2 || !"Bearer".equals(parts[0])) {
-                throw new RuntimeException("Incorrect authorization structure");
+                throw new RuntimeException("Incorrect authorization structure.");
             }
 
-            return webClientBuilder.build()
-                    .post()
-                    .uri("http://users-service/api/users/validateToken?token=" + parts[1])
-                    .retrieve()
-                    .bodyToMono(UserDto.class)
-                    .map(userDto -> {
-                        exchange.getRequest()
-                                .mutate()
-                                .header("X-auth-user-email", String.valueOf(userDto.getEmail()));
-                        return exchange;
-                    }).flatMap(chain::filter);
+            try {
+                String token = parts[1];
+                verifier.verify(token);
+            } catch (JWTVerificationException e) {
+                throw new RuntimeException("Invalid JWT.");
+            }
+
+            return chain.filter(exchange);
         };
     }
 
