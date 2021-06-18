@@ -45,7 +45,7 @@ public class DonationServiceImpl implements DonationService {
     }
 
     @Override
-    public Donation createDonation(String initiatorEmail, DonationDto donationDto) {
+    public Donation createDonation(String initiatorEmail, DonationDto donationDto) throws ConstraintViolationException {
         this.checkDtoForViolations(donationDto);
         Donation newDonation = new Donation(initiatorEmail, donationDto);
 
@@ -53,7 +53,8 @@ public class DonationServiceImpl implements DonationService {
     }
 
     @Override
-    public Donation editDonation(Long donationId, DonationDto donationDto) throws DonationNotFound {
+    public Donation editDonation(Long donationId, DonationDto donationDto) throws ConstraintViolationException,
+            DonationNotFound {
         this.checkDtoForViolations(donationDto);
         Donation existingDonation = this.findById(donationId);
 
