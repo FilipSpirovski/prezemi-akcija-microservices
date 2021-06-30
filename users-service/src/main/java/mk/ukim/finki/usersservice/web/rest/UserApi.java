@@ -39,7 +39,7 @@ public class UserApi {
     }
 
     @GetMapping("/single-user")
-    public ResponseEntity getUserDetails(@RequestParam String userEmail) {
+    public ResponseEntity getUserDetails(@RequestBody String userEmail) {
         try {
             User user = this.userService.findByEmail(userEmail);
 
@@ -50,7 +50,7 @@ public class UserApi {
     }
 
     @PostMapping("/register")
-    public ResponseEntity registerNewUser(@RequestParam RegistrationDto registrationDto) {
+    public ResponseEntity registerNewUser(@RequestBody RegistrationDto registrationDto) {
         try {
             String token = this.userService.registerUser(registrationDto);
 
@@ -63,7 +63,7 @@ public class UserApi {
     }
 
     @GetMapping("/sign-in")
-    public ResponseEntity signInExistingUser(@RequestParam LoginDto loginDto) {
+    public ResponseEntity signInExistingUser(@RequestBody LoginDto loginDto) {
         try {
             String token = this.userService.loginUser(loginDto);
 
@@ -76,7 +76,7 @@ public class UserApi {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity deleteExistingUser(@RequestParam String userEmail) {
+    public ResponseEntity deleteExistingUser(@RequestBody String userEmail) {
         try {
             boolean result = this.userService.deleteUser(userEmail);
 

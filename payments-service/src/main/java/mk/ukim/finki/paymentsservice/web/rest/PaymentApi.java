@@ -3,10 +3,12 @@ package mk.ukim.finki.paymentsservice.web.rest;
 import lombok.AllArgsConstructor;
 import mk.ukim.finki.paymentsservice.model.Payment;
 import mk.ukim.finki.paymentsservice.model.dto.PaymentDto;
+import mk.ukim.finki.paymentsservice.model.exception.DonationNotFound;
 import mk.ukim.finki.paymentsservice.model.exception.PaymentNotFound;
 import mk.ukim.finki.paymentsservice.service.PaymentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
@@ -28,7 +30,7 @@ public class PaymentApi {
     }
 
     @GetMapping("/made-by")
-    public ResponseEntity<List<Payment>> getPaymentsMadeBy(@RequestParam String donorEmail) {
+    public ResponseEntity<List<Payment>> getPaymentsMadeBy(@RequestBody String donorEmail) {
         List<Payment> payments = this.paymentService.findAllByDonorEmail(donorEmail);
 
         return ResponseEntity.ok().body(payments);
@@ -53,13 +55,15 @@ public class PaymentApi {
     }
 
     @PostMapping("/new")
-    public ResponseEntity addNewPayment(@RequestParam PaymentDto paymentDto) {
+    public ResponseEntity addNewPayment(@RequestBody PaymentDto paymentDto, Authentication authentication) {
         try {
-            Payment payment = this.paymentService.createPayment(paymentDto);
+            Payment payment = this.paymentService.createPayment(paymentDto, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(payment);
         } catch (ConstraintViolationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (DonationNotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

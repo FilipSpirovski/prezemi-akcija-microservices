@@ -1,15 +1,13 @@
-package mk.ukim.finki.initiativesservice.web;
+package mk.ukim.finki.initiativesservice.web.rest;
 
 import lombok.AllArgsConstructor;
 import mk.ukim.finki.initiativesservice.model.Initiative;
 import mk.ukim.finki.initiativesservice.model.dto.InitiativeDto;
-import mk.ukim.finki.initiativesservice.model.exception.InitiativeNotFound;
-import mk.ukim.finki.initiativesservice.model.exception.InvalidCategoryName;
-import mk.ukim.finki.initiativesservice.model.exception.InvalidEventTypeName;
-import mk.ukim.finki.initiativesservice.model.exception.ParticipantNotFound;
+import mk.ukim.finki.initiativesservice.model.exception.*;
 import mk.ukim.finki.initiativesservice.service.InitiativeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
@@ -31,15 +29,14 @@ public class InitiativeApi {
     }
 
     @GetMapping("/initiated-by")
-    public ResponseEntity<List<Initiative>> getInitiativesInitiatedBy(@RequestParam String initiatorEmail) {
+    public ResponseEntity<List<Initiative>> getInitiativesInitiatedBy(@RequestBody String initiatorEmail) {
         List<Initiative> initiatives = this.initiativeService.findAllByInitiatorEmail(initiatorEmail);
 
         return ResponseEntity.ok().body(initiatives);
     }
 
-    @GetMapping("/{category}")
+    @GetMapping("/by-category/{category}")
     public ResponseEntity getInitiativesWithCategory(@PathVariable String category) {
-
         try {
             List<Initiative> initiatives = this.initiativeService.findAllByCategory(category);
 
@@ -49,9 +46,8 @@ public class InitiativeApi {
         }
     }
 
-    @GetMapping("/{eventType}")
+    @GetMapping("/by-type/{eventType}")
     public ResponseEntity getInitiativesWithEventType(@PathVariable String eventType) {
-
         try {
             List<Initiative> initiatives = this.initiativeService.findAllByEventType(eventType);
 
@@ -63,7 +59,6 @@ public class InitiativeApi {
 
     @GetMapping("/{id}")
     public ResponseEntity getInitiativeDetails(@PathVariable Long id) {
-
         try {
             Initiative initiative = this.initiativeService.findById(id);
 
@@ -74,25 +69,26 @@ public class InitiativeApi {
     }
 
     @PostMapping("/new")
-    public ResponseEntity addNewInitiative(@RequestParam String initiatorEmail,
-                                           @RequestParam InitiativeDto initiativeDto) {
+    public ResponseEntity addNewInitiative(@RequestBody InitiativeDto initiativeDto, Authentication authentication) {
         try {
-            Initiative initiative = this.initiativeService.createInitiative(initiatorEmail, initiativeDto);
+            Initiative initiative = this.initiativeService.createInitiative(initiativeDto, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(initiative);
-        } catch (ConstraintViolationException | InvalidCategoryName | InvalidEventTypeName e) {
+        } catch (ConstraintViolationException | InvalidCategoryName | InvalidEventTypeName | InvalidDateAndTime e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (ForumNotCreated e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}/edit")
     public ResponseEntity updateExistingInitiative(@PathVariable Long id,
-                                                   @RequestParam InitiativeDto initiativeDto) {
+                                                   @RequestBody InitiativeDto initiativeDto) {
         try {
             Initiative initiative = this.initiativeService.editInitiative(id, initiativeDto);
 
             return ResponseEntity.ok().body(initiative);
-        } catch (ConstraintViolationException | InvalidCategoryName | InvalidEventTypeName e) {
+        } catch (ConstraintViolationException | InvalidCategoryName | InvalidEventTypeName | InvalidDateAndTime e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (InitiativeNotFound e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -100,10 +96,9 @@ public class InitiativeApi {
     }
 
     @PutMapping("/{id}/add-participant")
-    public ResponseEntity addParticipantToExistingInitiative(@PathVariable Long id,
-                                                             @RequestParam String userEmail) {
+    public ResponseEntity addParticipantToExistingInitiative(@PathVariable Long id, Authentication authentication) {
         try {
-            Initiative initiative = this.initiativeService.addParticipantToInitiative(userEmail, id);
+            Initiative initiative = this.initiativeService.addParticipantToInitiative(id, authentication);
 
             return ResponseEntity.ok().body(initiative);
         } catch (InitiativeNotFound e) {
@@ -112,10 +107,9 @@ public class InitiativeApi {
     }
 
     @PutMapping("/{id}/remove-participant")
-    public ResponseEntity removeParticipantFromExistingInitiative(@PathVariable Long id,
-                                                                  @RequestParam String userEmail) {
+    public ResponseEntity removeParticipantFromExistingInitiative(@PathVariable Long id, Authentication authentication) {
         try {
-            Initiative initiative = this.initiativeService.removeParticipantFromInitiative(userEmail, id);
+            Initiative initiative = this.initiativeService.removeParticipantFromInitiative(id, authentication);
 
             return ResponseEntity.ok().body(initiative);
         } catch (InitiativeNotFound | ParticipantNotFound e) {

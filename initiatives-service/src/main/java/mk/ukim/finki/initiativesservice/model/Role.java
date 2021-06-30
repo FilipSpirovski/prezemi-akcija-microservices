@@ -2,7 +2,9 @@ package mk.ukim.finki.initiativesservice.model;
 
 import org.springframework.security.core.GrantedAuthority;
 
-public enum Role implements GrantedAuthority {
+import java.io.Serializable;
+
+public enum Role implements GrantedAuthority, Serializable {
     ROLE_USER,
     ROLE_ADMIN,
     ROLE_FORUM_SERVICE,

@@ -8,6 +8,7 @@ import mk.ukim.finki.donationsservice.model.exception.DonationNotFound;
 import mk.ukim.finki.donationsservice.model.exception.InvalidStatusName;
 import mk.ukim.finki.donationsservice.repository.DonationRepository;
 import mk.ukim.finki.donationsservice.service.DonationService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.validation.ConstraintViolationException;
@@ -45,8 +46,10 @@ public class DonationServiceImpl implements DonationService {
     }
 
     @Override
-    public Donation createDonation(String initiatorEmail, DonationDto donationDto) throws ConstraintViolationException {
+    public Donation createDonation(DonationDto donationDto, Authentication authentication) throws ConstraintViolationException {
         this.checkDtoForViolations(donationDto);
+
+        String initiatorEmail = (String) authentication.getPrincipal();
         Donation newDonation = new Donation(initiatorEmail, donationDto);
 
         return this.donationRepository.save(newDonation);

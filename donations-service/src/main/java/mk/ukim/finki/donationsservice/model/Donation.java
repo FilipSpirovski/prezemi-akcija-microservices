@@ -5,12 +5,13 @@ import lombok.NoArgsConstructor;
 import mk.ukim.finki.donationsservice.model.dto.DonationDto;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name = "donations")
-public class Donation {
+public class Donation implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

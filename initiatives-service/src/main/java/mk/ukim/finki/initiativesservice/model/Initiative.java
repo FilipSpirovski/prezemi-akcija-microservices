@@ -6,6 +6,7 @@ import mk.ukim.finki.initiativesservice.model.dto.InitiativeDto;
 import mk.ukim.finki.initiativesservice.model.utility.Utilities;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "initiatives")
-public class Initiative {
+public class Initiative implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

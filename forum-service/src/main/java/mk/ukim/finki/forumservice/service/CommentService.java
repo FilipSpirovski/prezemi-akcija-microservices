@@ -2,6 +2,7 @@ package mk.ukim.finki.forumservice.service;
 
 import mk.ukim.finki.forumservice.model.Comment;
 import mk.ukim.finki.forumservice.model.dto.CommentDto;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface CommentService {
 
     Comment findById(Long commentId);
 
-    Comment createComment(String submitterEmail, CommentDto commentDto);
+    Comment createComment(CommentDto commentDto, Authentication authentication);
 
     Comment editComment(Long commentId, CommentDto commentDto);
 

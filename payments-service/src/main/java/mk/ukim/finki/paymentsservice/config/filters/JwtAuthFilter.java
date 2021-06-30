@@ -1,5 +1,7 @@
 package mk.ukim.finki.paymentsservice.config.filters;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mk.ukim.finki.paymentsservice.config.JwtAuthConstants;
@@ -27,17 +29,27 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String jwtToken = request.getHeader(JwtAuthConstants.HEADER_STRING)
-                .replace(JwtAuthConstants.TOKEN_PREFIX, "");
-        String subject = verifier.verify(jwtToken)
-                .getSubject();
-        RequestDetailsDto userDetails = new ObjectMapper()
-                .readValue(subject, RequestDetailsDto.class);
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                userDetails.getId(), "", Collections.singleton(userDetails.getRole())
-        );
+        String header = request.getHeader(JwtAuthConstants.HEADER_STRING);
 
-        SecurityContextHolder.getContext().setAuthentication(token);
-        chain.doFilter(request, response);
+        if (header == null || !header.startsWith(JwtAuthConstants.TOKEN_PREFIX)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing auth information.");
+        }
+
+        String jwtToken = header.replace(JwtAuthConstants.TOKEN_PREFIX, "");
+
+        try {
+            DecodedJWT decodedJWT = verifier.verify(jwtToken);
+            String subject = decodedJWT.getSubject();
+
+            RequestDetailsDto userDetails = new ObjectMapper().readValue(subject, RequestDetailsDto.class);
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                    userDetails.getId(), null, Collections.singleton(userDetails.getRole())
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(token);
+            chain.doFilter(request, response);
+        } catch (JWTVerificationException e) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token.");
+        }
     }
 }

@@ -4,14 +4,12 @@ import lombok.AllArgsConstructor;
 import mk.ukim.finki.forumservice.model.Comment;
 import mk.ukim.finki.forumservice.model.Forum;
 import mk.ukim.finki.forumservice.model.dto.CommentDto;
-import mk.ukim.finki.forumservice.model.exception.CommentNotFound;
-import mk.ukim.finki.forumservice.model.exception.ForumForInitiativeAlreadyExists;
-import mk.ukim.finki.forumservice.model.exception.ForumForInitiativeNotFound;
-import mk.ukim.finki.forumservice.model.exception.ForumNotFound;
+import mk.ukim.finki.forumservice.model.exception.*;
 import mk.ukim.finki.forumservice.service.CommentService;
 import mk.ukim.finki.forumservice.service.ForumService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
@@ -63,6 +61,8 @@ public class ForumApi {
             return ResponseEntity.status(HttpStatus.CREATED).body(forum);
         } catch (ForumForInitiativeAlreadyExists e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (InitiativeNotFound e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -98,7 +98,7 @@ public class ForumApi {
     }
 
     @GetMapping("/comments/submitted-by")
-    public ResponseEntity<List<Comment>> getCommentsSubmittedBy(@RequestParam String submitterEmail) {
+    public ResponseEntity<List<Comment>> getCommentsSubmittedBy(@RequestBody String submitterEmail) {
         List<Comment> comments = this.commentService.findAllBySubmitterEmail(submitterEmail);
 
         return ResponseEntity.ok().body(comments);
@@ -116,10 +116,9 @@ public class ForumApi {
     }
 
     @PostMapping("/comments/new")
-    public ResponseEntity addNewComment(@RequestParam String submitterEmail,
-                                        @RequestParam CommentDto commentDto) {
+    public ResponseEntity addNewComment(@RequestBody CommentDto commentDto, Authentication authentication) {
         try {
-            Comment comment = this.commentService.createComment(submitterEmail, commentDto);
+            Comment comment = this.commentService.createComment(commentDto, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(comment);
         } catch (ConstraintViolationException e) {
@@ -131,7 +130,7 @@ public class ForumApi {
 
     @PutMapping("/comments/{id}/edit")
     public ResponseEntity updateExistingComment(@PathVariable Long id,
-                                                @RequestParam CommentDto commentDto) {
+                                                @RequestBody CommentDto commentDto) {
 
         try {
             Comment comment = this.commentService.editComment(id, commentDto);

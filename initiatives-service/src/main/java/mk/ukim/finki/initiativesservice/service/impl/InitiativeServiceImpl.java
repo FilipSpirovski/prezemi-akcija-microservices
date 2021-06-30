@@ -5,16 +5,19 @@ import mk.ukim.finki.initiativesservice.model.Category;
 import mk.ukim.finki.initiativesservice.model.EventType;
 import mk.ukim.finki.initiativesservice.model.Initiative;
 import mk.ukim.finki.initiativesservice.model.dto.InitiativeDto;
-import mk.ukim.finki.initiativesservice.model.exception.InitiativeNotFound;
-import mk.ukim.finki.initiativesservice.model.exception.InvalidCategoryName;
-import mk.ukim.finki.initiativesservice.model.exception.InvalidEventTypeName;
-import mk.ukim.finki.initiativesservice.model.exception.ParticipantNotFound;
+import mk.ukim.finki.initiativesservice.model.exception.*;
+import mk.ukim.finki.initiativesservice.model.utility.Utilities;
 import mk.ukim.finki.initiativesservice.repository.InitiativeRepository;
 import mk.ukim.finki.initiativesservice.service.InitiativeService;
+import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +26,8 @@ public class InitiativeServiceImpl implements InitiativeService {
 
     private final InitiativeRepository initiativeRepository;
     private final Validator validator;
+    private final RestTemplate restTemplate;
+    private final String forumMicroserviceUrl = "http://forum-service/api/forum";
 
     @Override
     public List<Initiative> findAll() {
@@ -55,19 +60,26 @@ public class InitiativeServiceImpl implements InitiativeService {
     }
 
     @Override
-    public Initiative createInitiative(String initiatorEmail, InitiativeDto initiativeDto) throws
-            ConstraintViolationException, InvalidCategoryName, InvalidEventTypeName {
+    public Initiative createInitiative(InitiativeDto initiativeDto, Authentication authentication) throws
+            ConstraintViolationException, InvalidCategoryName, InvalidEventTypeName, InvalidDateAndTime {
         this.checkDtoForViolations(initiativeDto);
         this.validateCategoryName(initiativeDto.getCategoryName());
         this.validateEventTypeName(initiativeDto.getEventTypeName());
-        Initiative newInitiative = new Initiative(initiatorEmail, initiativeDto);
 
-        return this.initiativeRepository.save(newInitiative);
+        String initiatorEmail = (String) authentication.getPrincipal();
+        Initiative newInitiative = new Initiative(initiatorEmail, initiativeDto);
+        newInitiative = this.initiativeRepository.save(newInitiative);
+
+        if (this.createForumForInitiative(newInitiative.getId())) {
+            return newInitiative;
+        } else {
+            throw new ForumNotCreated(newInitiative.getId());
+        }
     }
 
     @Override
     public Initiative editInitiative(Long initiativeId, InitiativeDto initiativeDto) throws
-            ConstraintViolationException, InvalidCategoryName, InvalidEventTypeName, InitiativeNotFound {
+            ConstraintViolationException, InvalidCategoryName, InvalidEventTypeName, InitiativeNotFound, InvalidDateAndTime {
         this.checkDtoForViolations(initiativeDto);
         this.validateCategoryName(initiativeDto.getCategoryName());
         this.validateEventTypeName(initiativeDto.getEventTypeName());
@@ -79,9 +91,10 @@ public class InitiativeServiceImpl implements InitiativeService {
     }
 
     @Override
-    public Initiative addParticipantToInitiative(String participantEmail, Long initiativeId) throws InitiativeNotFound {
+    public Initiative addParticipantToInitiative(Long initiativeId, Authentication authentication) throws InitiativeNotFound {
         Initiative existingInitiative = this.findById(initiativeId);
 
+        String participantEmail = (String) authentication.getPrincipal();
         existingInitiative.getParticipantEmails()
                 .add(participantEmail);
 
@@ -89,9 +102,9 @@ public class InitiativeServiceImpl implements InitiativeService {
     }
 
     @Override
-    public Initiative removeParticipantFromInitiative(String participantEmail, Long initiativeId) throws InitiativeNotFound {
+    public Initiative removeParticipantFromInitiative(Long initiativeId, Authentication authentication) throws InitiativeNotFound {
         Initiative existingInitiative = this.findById(initiativeId);
-
+        String participantEmail = (String) authentication.getPrincipal();
         boolean result = existingInitiative.getParticipantEmails()
                 .remove(participantEmail);
 
@@ -156,5 +169,28 @@ public class InitiativeServiceImpl implements InitiativeService {
         if (constraintViolations.size() > 0) {
             throw new ConstraintViolationException("The provided 'Initiative' object is not valid.", constraintViolations);
         }
+
+        LocalDateTime scheduledFor = Utilities.convertFromStringToDateAndTime(initiativeDto.getScheduledFor());
+        if (!scheduledFor.isAfter(LocalDateTime.now())) {
+            throw new InvalidDateAndTime();
+        }
+    }
+
+    private boolean createForumForInitiative(Long initiativeId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(this.forumMicroserviceUrl + "/new/" + initiativeId);
+
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = this.restTemplate.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity,
+                String.class);
+
+        return response.getStatusCode().equals(HttpStatus.CREATED);
     }
 }

@@ -5,12 +5,13 @@ import lombok.NoArgsConstructor;
 import mk.ukim.finki.forumservice.model.dto.CommentDto;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name = "comments")
-public class Comment {
+public class Comment implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

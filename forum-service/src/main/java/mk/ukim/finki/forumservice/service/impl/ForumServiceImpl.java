@@ -5,9 +5,13 @@ import mk.ukim.finki.forumservice.model.Forum;
 import mk.ukim.finki.forumservice.model.exception.ForumForInitiativeAlreadyExists;
 import mk.ukim.finki.forumservice.model.exception.ForumForInitiativeNotFound;
 import mk.ukim.finki.forumservice.model.exception.ForumNotFound;
+import mk.ukim.finki.forumservice.model.exception.InitiativeNotFound;
 import mk.ukim.finki.forumservice.repository.ForumRepository;
 import mk.ukim.finki.forumservice.service.ForumService;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -16,6 +20,8 @@ import java.util.List;
 public class ForumServiceImpl implements ForumService {
 
     private final ForumRepository forumRepository;
+    private final RestTemplate restTemplate;
+    private final String initiativesMicroserviceUrl = "http://initiatives-service/api/initiatives";
 
     @Override
     public List<Forum> findAll() {
@@ -42,9 +48,13 @@ public class ForumServiceImpl implements ForumService {
             forum = this.findByInitiative(initiativeId);
             throw new ForumForInitiativeAlreadyExists(initiativeId);
         } catch (ForumForInitiativeNotFound e) {
-            forum = new Forum(initiativeId);
+            if (this.checkIfInitiativeExists(initiativeId)) {
+                forum = new Forum(initiativeId);
 
-            return this.forumRepository.save(forum);
+                return this.forumRepository.save(forum);
+            } else {
+                throw new InitiativeNotFound(initiativeId);
+            }
         }
     }
 
@@ -60,5 +70,23 @@ public class ForumServiceImpl implements ForumService {
         } catch (ForumNotFound e) {
             return true;
         }
+    }
+
+    private boolean checkIfInitiativeExists(Long initiativeId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(this.initiativesMicroserviceUrl + "/" + initiativeId);
+
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = this.restTemplate.exchange(
+                builder.toUriString(),
+                HttpMethod.GET,
+                entity,
+                String.class);
+
+        return response.getStatusCode().equals(HttpStatus.FOUND);
     }
 }

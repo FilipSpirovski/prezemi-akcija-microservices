@@ -1,6 +1,8 @@
 package mk.ukim.finki.initiativesservice.model;
 
-public enum Category {
+import java.io.Serializable;
+
+public enum Category implements Serializable {
     ANIMALS,
     HUMAN_RIGHTS,
     HEALTH,

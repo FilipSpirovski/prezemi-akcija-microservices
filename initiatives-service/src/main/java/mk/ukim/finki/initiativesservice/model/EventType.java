@@ -1,6 +1,8 @@
 package mk.ukim.finki.initiativesservice.model;
 
-public enum EventType {
+import java.io.Serializable;
+
+public enum EventType implements Serializable {
     IN_GROUP,
     ONLINE
 }

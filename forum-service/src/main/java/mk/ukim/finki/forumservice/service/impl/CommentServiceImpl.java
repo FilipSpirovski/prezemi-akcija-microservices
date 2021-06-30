@@ -9,6 +9,7 @@ import mk.ukim.finki.forumservice.model.exception.ForumNotFound;
 import mk.ukim.finki.forumservice.repository.CommentRepository;
 import mk.ukim.finki.forumservice.repository.ForumRepository;
 import mk.ukim.finki.forumservice.service.CommentService;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.validation.ConstraintViolationException;
@@ -21,7 +22,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final ForumRepository forumRepository;
-    private Validator validator;
+    private final Validator validator;
 
     @Override
     public List<Comment> findAll() {
@@ -45,10 +46,11 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment createComment(String submitterEmail, CommentDto commentDto) throws ConstraintViolationException {
+    public Comment createComment(CommentDto commentDto, Authentication authentication) throws ConstraintViolationException {
         this.checkDtoForViolations(commentDto);
         Forum existingForum = this.forumRepository.findById(commentDto.getForumId())
                 .orElseThrow(() -> new ForumNotFound(commentDto.getForumId()));
+        String submitterEmail = (String) authentication.getPrincipal();
         Comment newComment = new Comment(existingForum, submitterEmail, commentDto.getText());
 
         return this.commentRepository.save(newComment);

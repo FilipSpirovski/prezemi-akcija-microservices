@@ -2,6 +2,7 @@ package mk.ukim.finki.donationsservice.service;
 
 import mk.ukim.finki.donationsservice.model.Donation;
 import mk.ukim.finki.donationsservice.model.dto.DonationDto;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface DonationService {
 
     Donation findById(Long donationId);
 
-    Donation createDonation(String initiatorEmail, DonationDto donationDto);
+    Donation createDonation(DonationDto donationDto, Authentication authentication);
 
     Donation editDonation(Long donationId, DonationDto donationDto);
 

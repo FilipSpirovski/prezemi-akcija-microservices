@@ -1,9 +1,8 @@
 package mk.ukim.finki.initiativesservice.service;
 
-import mk.ukim.finki.initiativesservice.model.Category;
-import mk.ukim.finki.initiativesservice.model.EventType;
 import mk.ukim.finki.initiativesservice.model.Initiative;
 import mk.ukim.finki.initiativesservice.model.dto.InitiativeDto;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -19,13 +18,13 @@ public interface InitiativeService {
 
     Initiative findById(Long initiativeId);
 
-    Initiative createInitiative(String initiatorEmail, InitiativeDto initiativeDto);
+    Initiative createInitiative(InitiativeDto initiativeDto, Authentication authentication);
 
     Initiative editInitiative(Long initiativeId, InitiativeDto initiativeDto);
 
-    Initiative addParticipantToInitiative(String participantEmail, Long initiativeId);
+    Initiative addParticipantToInitiative(Long initiativeId, Authentication authentication);
 
-    Initiative removeParticipantFromInitiative(String participantEmail, Long initiativeId);
+    Initiative removeParticipantFromInitiative(Long initiativeId, Authentication authentication);
 
     boolean deleteInitiative(Long initiativeId);
 }

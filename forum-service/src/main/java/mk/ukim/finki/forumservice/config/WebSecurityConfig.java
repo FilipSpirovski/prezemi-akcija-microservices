@@ -28,7 +28,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/forum/**")
+                .antMatchers("/api/forum",
+                        "/api/forum/{id}",
+                        "/api/forum/for-initiative/{initiativeId}",
+                        "/api/forum/comments",
+                        "/api/forum/comments/for-forum/{forumId}",
+                        "/api/forum/comments/submitted-by",
+                        "/api/forum/comments/{id}")
                 .permitAll()
                 .and()
                 .addFilter(new JwtAuthFilter(authenticationManager(), verifier()))

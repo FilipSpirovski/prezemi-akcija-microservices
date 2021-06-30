@@ -5,12 +5,13 @@ import lombok.NoArgsConstructor;
 import mk.ukim.finki.usersservice.model.dto.RegistrationDto;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name = "app_users")
-public class User {
+public class User implements Serializable {
 
     @Id
     private String email;

@@ -8,6 +8,7 @@ import mk.ukim.finki.donationsservice.model.exception.InvalidStatusName;
 import mk.ukim.finki.donationsservice.service.DonationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.ConstraintViolationException;
@@ -29,7 +30,7 @@ public class DonationApi {
     }
 
     @GetMapping("/initiated-by")
-    public ResponseEntity<List<Donation>> getDonationsInitiatedBy(@RequestParam String initiatorEmail) {
+    public ResponseEntity<List<Donation>> getDonationsInitiatedBy(@RequestBody String initiatorEmail) {
         List<Donation> donations = this.donationService.findAllByInitiatorEmail(initiatorEmail);
 
         return ResponseEntity.ok().body(donations);
@@ -58,10 +59,9 @@ public class DonationApi {
     }
 
     @PostMapping("/new")
-    public ResponseEntity addNewDonation(@RequestParam String initiatorEmail,
-                                         @RequestParam DonationDto donationDto) {
+    public ResponseEntity addNewDonation(@RequestBody DonationDto donationDto, Authentication authentication) {
         try {
-            Donation donation = this.donationService.createDonation(initiatorEmail, donationDto);
+            Donation donation = this.donationService.createDonation(donationDto, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(donation);
         } catch (ConstraintViolationException e) {
@@ -71,7 +71,7 @@ public class DonationApi {
 
     @PutMapping("/{id}/edit")
     public ResponseEntity updateExistingDonation(@PathVariable Long id,
-                                                 @RequestParam DonationDto donationDto) {
+                                                 @RequestBody DonationDto donationDto) {
         try {
             Donation donation = this.donationService.editDonation(id, donationDto);
 

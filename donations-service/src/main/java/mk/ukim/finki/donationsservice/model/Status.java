@@ -1,6 +1,8 @@
 package mk.ukim.finki.donationsservice.model;
 
-public enum Status {
+import java.io.Serializable;
+
+public enum Status implements Serializable {
     ACTIVE,
     CLOSED
 }
