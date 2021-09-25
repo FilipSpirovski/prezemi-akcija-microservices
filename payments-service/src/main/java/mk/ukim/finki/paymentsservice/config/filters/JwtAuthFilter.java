@@ -33,6 +33,7 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
 
         if (header == null || !header.startsWith(JwtAuthConstants.TOKEN_PREFIX)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing auth information.");
+            return;
         }
 
         String jwtToken = header.replace(JwtAuthConstants.TOKEN_PREFIX, "");
@@ -50,6 +51,7 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
         } catch (JWTVerificationException e) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token.");
+            return;
         }
     }
 }

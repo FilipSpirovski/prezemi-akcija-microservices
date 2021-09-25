@@ -6,6 +6,7 @@ import mk.ukim.finki.paymentsservice.model.dto.PaymentDto;
 import mk.ukim.finki.paymentsservice.model.exception.DonationNotFound;
 import mk.ukim.finki.paymentsservice.model.exception.PaymentNotFound;
 import mk.ukim.finki.paymentsservice.service.PaymentService;
+import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -55,9 +56,11 @@ public class PaymentApi {
     }
 
     @PostMapping("/new")
-    public ResponseEntity addNewPayment(@RequestBody PaymentDto paymentDto, Authentication authentication) {
+    public ResponseEntity addNewPayment(@RequestBody PaymentDto paymentDto,
+                                        @RequestHeader("Authorization") String authPayload,
+                                        Authentication authentication) {
         try {
-            Payment payment = this.paymentService.createPayment(paymentDto, authentication);
+            Payment payment = this.paymentService.createPayment(paymentDto, authPayload, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(payment);
         } catch (ConstraintViolationException e) {

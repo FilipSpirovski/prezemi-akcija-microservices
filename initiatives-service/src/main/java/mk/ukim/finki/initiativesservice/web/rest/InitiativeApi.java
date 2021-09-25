@@ -62,16 +62,18 @@ public class InitiativeApi {
         try {
             Initiative initiative = this.initiativeService.findById(id);
 
-            return ResponseEntity.status(HttpStatus.FOUND).body(initiative);
+            return ResponseEntity.status(HttpStatus.OK).body(initiative);
         } catch (InitiativeNotFound e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     @PostMapping("/new")
-    public ResponseEntity addNewInitiative(@RequestBody InitiativeDto initiativeDto, Authentication authentication) {
+    public ResponseEntity addNewInitiative(@RequestBody InitiativeDto initiativeDto,
+                                           @RequestHeader("Authorization") String authPayload,
+                                           Authentication authentication) {
         try {
-            Initiative initiative = this.initiativeService.createInitiative(initiativeDto, authentication);
+            Initiative initiative = this.initiativeService.createInitiative(initiativeDto, authPayload, authentication);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(initiative);
         } catch (ConstraintViolationException | InvalidCategoryName | InvalidEventTypeName | InvalidDateAndTime e) {

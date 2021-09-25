@@ -60,7 +60,7 @@ public class InitiativeServiceImpl implements InitiativeService {
     }
 
     @Override
-    public Initiative createInitiative(InitiativeDto initiativeDto, Authentication authentication) throws
+    public Initiative createInitiative(InitiativeDto initiativeDto, String authPayload, Authentication authentication) throws
             ConstraintViolationException, InvalidCategoryName, InvalidEventTypeName, InvalidDateAndTime {
         this.checkDtoForViolations(initiativeDto);
         this.validateCategoryName(initiativeDto.getCategoryName());
@@ -70,7 +70,7 @@ public class InitiativeServiceImpl implements InitiativeService {
         Initiative newInitiative = new Initiative(initiatorEmail, initiativeDto);
         newInitiative = this.initiativeRepository.save(newInitiative);
 
-        if (this.createForumForInitiative(newInitiative.getId())) {
+        if (this.createForumForInitiative(newInitiative.getId(), authPayload)) {
             return newInitiative;
         } else {
             throw new ForumNotCreated(newInitiative.getId());
@@ -176,18 +176,18 @@ public class InitiativeServiceImpl implements InitiativeService {
         }
     }
 
-    private boolean createForumForInitiative(Long initiativeId) {
+    private boolean createForumForInitiative(Long initiativeId, String authPayload) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+        headers.set(HttpHeaders.AUTHORIZATION, authPayload);
 
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpUrl(this.forumMicroserviceUrl + "/new/" + initiativeId);
 
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<String> response = this.restTemplate.exchange(
+        ResponseEntity response = this.restTemplate.exchange(
                 builder.toUriString(),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 entity,
                 String.class);
 

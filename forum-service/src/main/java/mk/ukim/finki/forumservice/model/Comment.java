@@ -1,5 +1,6 @@
 package mk.ukim.finki.forumservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import mk.ukim.finki.forumservice.model.dto.CommentDto;
@@ -18,6 +19,7 @@ public class Comment implements Serializable {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference
     private Forum forum;
 
     private String submitterEmail;
@@ -45,6 +47,6 @@ public class Comment implements Serializable {
     }
 
     public void dislike() {
-        this.likes -= 1;
+        this.dislikes += 1;
     }
 }

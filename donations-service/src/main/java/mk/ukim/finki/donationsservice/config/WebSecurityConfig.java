@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/donations",
                         "/api/donations/initiated-by",
-                        "/api/donations/{status}",
+                        "/api/donations/with-status/{status}",
                         "/api/donations/{id}")
                 .permitAll()
                 .and()

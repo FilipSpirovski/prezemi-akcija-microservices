@@ -62,7 +62,7 @@ public class UserApi {
         }
     }
 
-    @GetMapping("/sign-in")
+    @PostMapping("/sign-in")
     public ResponseEntity signInExistingUser(@RequestBody LoginDto loginDto) {
         try {
             String token = this.userService.loginUser(loginDto);

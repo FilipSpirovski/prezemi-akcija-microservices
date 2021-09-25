@@ -48,13 +48,9 @@ public class ForumServiceImpl implements ForumService {
             forum = this.findByInitiative(initiativeId);
             throw new ForumForInitiativeAlreadyExists(initiativeId);
         } catch (ForumForInitiativeNotFound e) {
-            if (this.checkIfInitiativeExists(initiativeId)) {
-                forum = new Forum(initiativeId);
+            forum = new Forum(initiativeId);
 
-                return this.forumRepository.save(forum);
-            } else {
-                throw new InitiativeNotFound(initiativeId);
-            }
+            return this.forumRepository.save(forum);
         }
     }
 

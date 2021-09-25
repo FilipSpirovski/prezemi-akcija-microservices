@@ -32,9 +32,7 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        List<String> allowedPaths = Arrays.asList("/api/users",
-                "/api/users/with-role/{role}", "/api/users/single-user",
-                "/api/users/register", "/api/users/sign-in");
+        List<String> allowedPaths = Arrays.asList("/api/users/register", "/api/users/sign-in");
 
         return allowedPaths.contains(path);
     }
@@ -45,6 +43,7 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
 
         if (header == null || !header.startsWith(JwtAuthConstants.TOKEN_PREFIX)) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing auth information.");
+            return;
         }
 
         String jwtToken = header.replace(JwtAuthConstants.TOKEN_PREFIX, "");
@@ -62,6 +61,7 @@ public class JwtAuthFilter extends BasicAuthenticationFilter {
             chain.doFilter(request, response);
         } catch (JWTVerificationException e) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid token.");
+            return;
         }
     }
 }

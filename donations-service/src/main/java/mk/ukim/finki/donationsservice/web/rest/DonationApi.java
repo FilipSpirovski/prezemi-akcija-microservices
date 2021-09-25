@@ -36,7 +36,7 @@ public class DonationApi {
         return ResponseEntity.ok().body(donations);
     }
 
-    @GetMapping("/{status}")
+    @GetMapping("/with-status/{status}")
     public ResponseEntity getDonationsWithStatus(@PathVariable String status) {
         try {
             List<Donation> donations = this.donationService.findAllByStatus(status);

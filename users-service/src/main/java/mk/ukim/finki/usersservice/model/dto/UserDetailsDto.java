@@ -11,14 +11,14 @@ import mk.ukim.finki.usersservice.model.User;
 @AllArgsConstructor
 public class UserDetailsDto {
 
-    private String email;
+    private String id;
 
     private Role role;
 
     public static UserDetailsDto of(User user) {
         UserDetailsDto userDetailsDto = new UserDetailsDto();
 
-        userDetailsDto.setEmail(user.getEmail());
+        userDetailsDto.setId(user.getEmail());
         userDetailsDto.setRole(user.getRole());
 
         return userDetailsDto;

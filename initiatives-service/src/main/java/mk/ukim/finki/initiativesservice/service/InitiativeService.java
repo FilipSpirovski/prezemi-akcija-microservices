@@ -18,7 +18,7 @@ public interface InitiativeService {
 
     Initiative findById(Long initiativeId);
 
-    Initiative createInitiative(InitiativeDto initiativeDto, Authentication authentication);
+    Initiative createInitiative(InitiativeDto initiativeDto, String authPayload, Authentication authentication);
 
     Initiative editInitiative(Long initiativeId, InitiativeDto initiativeDto);
 

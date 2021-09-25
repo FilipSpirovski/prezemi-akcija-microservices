@@ -1,5 +1,6 @@
 package mk.ukim.finki.forumservice.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ public class Forum implements Serializable {
     private Long initiativeId;
 
     @OneToMany(mappedBy = "forum")
+    @JsonManagedReference
     private List<Comment> comments;
 
     public Forum(Long initiativeId) {
